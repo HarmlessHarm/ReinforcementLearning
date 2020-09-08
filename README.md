@@ -16,6 +16,8 @@ nbstripout --install
 Make sure you run the install command while in a directory with git.   
 This will add a script to the git pipeline to clean up ipynb files.
 
+**NOTE** This will only work with git CLI, as the git script is only added there.
+Therefore gitkraken won't work for ipython notebooks
 
 #### Setup environment
 
