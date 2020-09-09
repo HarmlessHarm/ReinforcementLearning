@@ -23,25 +23,23 @@ def policy_eval_v(policy, env, discount_factor=1.0, theta=0.00001):
     
     for k in range(K):
         Delta = 0
-        V_prev = V
+        V_prev = V.copy()
         V = np.zeros(env.nS)
         
         for s, actions in enumerate(policy):
-            
             for a, p in enumerate(actions):
-                
                 sum_reward = 0
-                # This only loops once (just nice that it can take uncertain)
+                # This only loops once (just nice that it can take uncertain transition probabilities)
                 for (p_i, S_1, R, _) in env.P[s][a]:
                     
-                    sum_reward += p_i * (R + V_prev[S_1])
+                    sum_reward += p_i * (R + discount_factor * V_prev[S_1])
                 
                 V[s] += p * sum_reward
                 
         Delta = max(abs(V_prev - V))
-                                 
+
         if (Delta < theta):
-            print("Delta smaller:", k)
+            print(f"Delta < theta after {k} iterations")
             break
     
     return np.array(V)
@@ -85,9 +83,9 @@ def policy_iter_v(env, policy_eval_v=policy_eval_v, discount_factor=1.0):
             for a, p in enumerate(actions):
                 
                 sum_reward = 0
-                # This only loops once (just nice that it can take uncertain)
+                # This only loops once (just nice that it can take uncertain transition probabilities)
                 for (p_i, S_1, R, _) in env.P[s][a]:
-                    sum_reward += p_i * (R + V[S_1])
+                    sum_reward += p_i * (R + discount_factor * V[S_1])
                     
                 temp_new_pol[a] = sum_reward
                 
@@ -120,6 +118,35 @@ def value_iter_q(env, theta=0.0001, discount_factor=1.0):
     
     # Start with an all 0 Q-value function
     Q = np.zeros((env.nS, env.nA))
-    # YOUR CODE HERE
-    raise NotImplementedError
+    policy = np.ones((env.nS, env.nA)) / env.nA
+    
+    K = 1000
+    
+    # maximum of K times iteration
+    for k in range(K):
+        Delta = 0
+                
+        Q_new = np.zeros((env.nS, env.nA))
+        
+        for s in range(env.nS):
+            
+            for a in range(env.nA):
+                
+                sum_reward = 0
+                # This only loops once (just nice that it can take uncertain)
+                for (p_i, S_1, R, _) in env.P[s][a]:
+                    
+                    sum_reward += p_i * (R + discount_factor * max(Q[S_1]))
+                
+                Q_new[s,a] = sum_reward
+                
+        Delta = np.amax(abs(Q - Q_new))
+        Q = Q_new.copy()
+
+        if (Delta < theta):
+            print(f"Delta < theta after {k} iterations")
+            break
+    
+    policy = np.asarray([np.array(q == max(q), dtype=int) / sum(q == max(q)) for q in Q])
+    
     return policy, Q
