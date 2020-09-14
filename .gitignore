@@ -1,5 +1,5 @@
 # Custom gitignore entries
-dp_autograde.py
+*_autograde.py
 
 
 
